@@ -2,7 +2,7 @@
 mongo
 .\mongo.exe
 
-base de données nommée info:
+Créer base de données nommée info:
   use info
 
 db
@@ -65,4 +65,3 @@ uilise id pour récupérer produit:
 
 - Supprimer le Lenovo X230 en utilisant uniquement son id:
   db.produits.remove({ _id: ObjectId("691cad728def75552136ce4b") })
-
