@@ -1,0 +1,109 @@
+mkdir D:\TP_N7
+
+-Create logs folders for each broker
+    mkdir D:\TP_N7\kafka-logs-1
+    mkdir D:\TP_N7\kafka-logs-2
+    mkdir D:\TP_N7\kafka-logs-3
+
+-Create a broker file 1
+    New-Item -Path .\server.properties -ItemType File
+
+-Create a broker file 2
+    New-Item -Path .\server-2.properties -ItemType File
+
+-Create a broker file 3
+    New-Item -Path .\server-3.properties -ItemType File
+
+-Running ZooKeeper
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+
+-Run the first broker
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-server-start.bat .\config\server.properties
+
+-Exemple Producteur Consommateur:
+    -Create the topic -tp7-sensor-data:
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-topics.bat --create --topic tp7-sensor-data --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+     
+    -Check for Topic:
+    .\bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9092
+    show this :tp7-sensor-data
+
+    -Run the Producer and send a message:
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-console-producer.bat --topic tp7-sensor-data --bootstrap-server localhost:9092
+    
+    Hello,Kafka this just a test
+    Hello
+    Test
+
+    -Enable Consumer to receive messages:
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-console-consumer.bat --topic tp7-sensor-data --from-beginning --bootstrap-server localhost:9092
+
+
+-Configuration de plusieurs brokers:
+    -Activating the three brokers:
+
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-server-start.bat .\config\server.properties
+
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-server-start.bat .\config\server-2.properties
+
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-server-start.bat .\config\server-3.properties
+
+    -Create a topic with replication factor=3:
+
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-topics.bat --create --topic TP7-IoT-Data --bootstrap-server localhost:9092 --replication-factor 3 --partitions 3
+
+    -Check for Topic:
+    .\bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9092
+
+    -Producer test for sending messages:   
+    cd D:\TP_N7\kafka_2.13-3.5.1 
+    .\bin\windows\kafka-console-producer.bat --topic TP7-IoT-Data --bootstrap-server localhost:9092
+        Machine1: Temperature=75
+        Machine2: Temperature=80
+        Machine3: Temperature=78
+
+    -Enable consumer1 to view messages
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-console-consumer.bat --topic TP7-IoT-Data --from-beginning --bootstrap-server localhost:9092
+
+    -Enable consumer2 to view messages
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-console-consumer.bat --topic TP7-IoT-Data --bootstrap-server localhost:9093 --group realtime-group 
+
+    -Enable consumer3 to view messages
+    cd D:\TP_N7\kafka_2.13-3.5.1
+    .\bin\windows\kafka-console-consumer.bat --topic TP7-IoT-Data --bootstrap-server localhost:9094 --group realtime-group
+
+
+-Projet IoT:
+-Install the library
+    pip install kafka-python
+    python -m pip show kafka-python
+
+-Create the topic  iot-sensors:
+    .\bin\windows\kafka-topics.bat --create --topic iot-sensors --bootstrap-server localhost:9092 --partitions 3 --replication-factor 2
+
+-Check for Topic:
+    .\bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9092
+
+-Creating Python files: 
+    producer_iot.py
+    consumer_iot_broker1.py
+    consumer_iot_broker2.py
+    consumer_3.py
+
+-Running Python files:
+    python consumer_iot_broker1.py
+    python consumer_iot_broker2.py
+    python consumer_3.py
+    python producer_iot.py
+

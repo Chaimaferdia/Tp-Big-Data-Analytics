@@ -1,0 +1,106 @@
+docker pull cassandra:latest
+docker run --name mon-cassandra -d -p 9042:9042 cassandra:latest
+docker ps
+docker cp "C:\Users\HSN\Downloads\restaurants_data\restaurants.csv" mon-cassandra:/
+docker cp "C:\Users\HSN\Downloads\restaurants_data\restaurants_inspections.csv" mon-cassandra:/
+docker exec -it mon-cassandra ls -l / | findstr .csv
+docker exec -it mon-cassandra cqlsh
+
+- Create Keyspace in cqlsh:
+
+    CREATE KEYSPACE IF NOT EXISTS resto_NY
+    WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor': 1 };
+    USE resto_NY;
+
+- Create the table Restaurant:
+
+    CREATE TABLE Restaurant (
+    id int,
+    name text,
+    borough text,
+    buildingnum text,
+    street text,
+    zipcode int,
+    phone text,
+    cuisinetype text,
+    PRIMARY KEY (id)
+    );
+    CREATE INDEX IF NOT EXISTS fk_Restaurant_cuisine ON Restaurant (cuisinetype);
+
+- Create the table Inspection:
+
+    CREATE TABLE Inspection (
+    idrestaurant int,
+    inspectiondate date,
+    violationcode text,
+    violationdescription text,
+    criticalflag text,
+    score int,
+    grade text,
+    PRIMARY KEY (idrestaurant, inspectiondate)
+    );
+    CREATE INDEX IF NOT EXISTS fk_Inspection_Grade ON Inspection (grade);
+
+- Show all tabeles in restaurants Keyspace:
+  DESC TABLES
+  DESC Restaurant;
+  DESC Inspection;
+
+- Import the files restaurants.csv and restaurants_inspections.csv :
+ 
+    COPY Restaurant (id, name, borough, buildingnum, street, zipcode, phone, cuisinetype)
+    FROM '/restaurants.csv' WITH DELIMITER=',' AND HEADER = TRUE;
+
+    COPY Inspection (idrestaurant, inspectiondate, violationcode, violationdescription, criticalflag, score, grade)
+    FROM '/restaurants_inspections.csv' WITH DELIMITER=',' AND HEADER = TRUE;
+
+-check the contents of the tables :
+
+    SELECT count(*) FROM Restaurant;
+    SELECT count(*) FROM Inspection;
+
+-Liste de tous les restaurants:
+
+    SELECT * FROM Restaurant;
+
+-Liste des noms de restaurants :
+
+    SELECT name FROM Restaurant;
+
+-Nom et quartier du restaurant dont l’id est 41569764 :
+
+    SELECT name, borough FROM Restaurant WHERE id = 41569764;
+
+-Dates et grades des inspections de ce restaurant :
+
+    SELECT inspectiondate, grade FROM Inspection WHERE idrestaurant = 41569764;
+
+-Noms des restaurants de cuisine Française :
+
+    SELECT name FROM Restaurant WHERE cuisinetype = 'French' ALLOW FILTERING;
+
+-Noms des restaurants situés dans BROOKLYN :
+
+    SELECT name FROM Restaurant WHERE borough = 'BROOKLYN' ALLOW FILTERING;
+
+-Grades et scores donnés pour une inspection pour le restaurant n° 41569764 avec un score d’au moins 10 :
+
+    SELECT grade, score FROM Inspection
+    WHERE idrestaurant = 41569764 AND score >= 10 ALLOW FILTERING;
+
+-Grades (non nuls) des inspections dont le score est supérieur à 30 :
+
+    SELECT grade
+    FROM Inspection
+    WHERE score > 30
+    AND grade > ''
+    ALLOW FILTERING;
+
+
+-Nombre de lignes retournées par la requête précédente :
+
+    SELECT COUNT(*) 
+    FROM Inspection
+    WHERE score > 30
+    AND grade > ''
+    ALLOW FILTERING;
